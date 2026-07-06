@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   title: "EarlyCEO | Be Early. Build Bigger. Lead the Future.",
   description:
     "Join the exclusive 9-Day EarlyCEO Bootcamp. Learn entrepreneurship, build your startup, and get the chance to become a CEO for a Day at a real company. Founding Cohort Special — ₹999 for Cohort 01.",
+  icons: {
+    icon: "/earlyceo-fevicon.png",
+    apple: "/earlyceo-fevicon.png",
+  },
   keywords: [
     "entrepreneurship bootcamp",
     "startup course",
