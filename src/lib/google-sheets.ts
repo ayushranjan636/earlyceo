@@ -11,22 +11,20 @@ export interface LeadFormData {
   whyBootcamp: string;
   hasIdea: string;
   ideaDetails: string;
-  willingToPay: string;
 }
 
-export interface EarlyBirdStatus {
+export interface CohortStatus {
   count: number;
   seatsLeft: number;
-  earlyBirdFull: boolean;
-  earlyBirdLimit: number;
-  currentPrice: number;
-  regularPrice: number;
+  cohortFull: boolean;
+  seatLimit: number;
+  price: number;
 }
 
-export interface LeadSubmissionResult extends EarlyBirdStatus {
+export interface LeadSubmissionResult extends CohortStatus {
   success: boolean;
   leadId: string;
-  tier: "early_bird" | "regular";
+  tier: "founding_cohort";
   amount: number;
 }
 
@@ -63,16 +61,19 @@ async function callScript<T>(payload: Record<string, unknown>): Promise<T> {
   }
 }
 
-export async function getEarlyBirdStatus(): Promise<EarlyBirdStatus> {
+function defaultCohortStatus(): CohortStatus {
+  return {
+    count: 0,
+    seatsLeft: PRICING.seatLimit,
+    cohortFull: false,
+    seatLimit: PRICING.seatLimit,
+    price: PRICING.price,
+  };
+}
+
+export async function getCohortStatus(): Promise<CohortStatus> {
   if (!SCRIPT_URL) {
-    return {
-      count: 0,
-      seatsLeft: PRICING.earlyBirdLimit,
-      earlyBirdFull: false,
-      earlyBirdLimit: PRICING.earlyBirdLimit,
-      currentPrice: PRICING.earlyBirdPrice,
-      regularPrice: PRICING.regularPrice,
-    };
+    return defaultCohortStatus();
   }
 
   const response = await fetch(SCRIPT_URL, {
@@ -84,7 +85,7 @@ export async function getEarlyBirdStatus(): Promise<EarlyBirdStatus> {
   const text = await response.text();
 
   try {
-    return JSON.parse(text) as EarlyBirdStatus;
+    return JSON.parse(text) as CohortStatus;
   } catch {
     if (text.includes("Access denied") || text.includes("You need access")) {
       throw new Error(
@@ -97,14 +98,23 @@ export async function getEarlyBirdStatus(): Promise<EarlyBirdStatus> {
 
 export async function appendLead(
   form: LeadFormData,
-  meta: { tier: string; amount: number; leadId: string }
+  meta: {
+    tier: string;
+    amount: number;
+    leadId: string;
+    paymentStatus: "paid" | "cancelled" | "failed" | "pending";
+    paymentId?: string;
+    orderId?: string;
+  }
 ): Promise<{ success: boolean }> {
   return callScript<{ success: boolean }>({
     action: "append",
     leadId: meta.leadId,
     tier: meta.tier,
     amount: meta.amount,
-    paymentStatus: "pending",
+    paymentStatus: meta.paymentStatus,
+    paymentId: meta.paymentId ?? "",
+    orderId: meta.orderId ?? "",
     submittedAt: new Date().toISOString(),
     ...form,
   });
@@ -126,19 +136,4 @@ export async function updateLeadPayment(
     paymentStatus: payment.status,
     paidAt: payment.status === "paid" ? new Date().toISOString() : "",
   });
-}
-
-export function resolveTier(count: number): {
-  tier: "early_bird" | "regular";
-  amount: number;
-  earlyBirdFull: boolean;
-  seatsLeft: number;
-} {
-  const earlyBirdFull = count >= PRICING.earlyBirdLimit;
-  return {
-    tier: earlyBirdFull ? "regular" : "early_bird",
-    amount: earlyBirdFull ? PRICING.regularPrice : PRICING.earlyBirdPrice,
-    earlyBirdFull,
-    seatsLeft: Math.max(0, PRICING.earlyBirdLimit - count),
-  };
 }

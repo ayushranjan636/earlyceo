@@ -9,7 +9,9 @@
  */
 
 const SHEET_NAME = "Sheet1";
-const EARLY_BIRD_LIMIT = 10;
+const COHORT_SEAT_LIMIT = 100;
+const COHORT_PRICE = 999;
+const PAID_TIERS = ["founding_cohort", "early_bird"];
 
 const COL = {
   PAYMENT_STATUS: 16,
@@ -56,17 +58,17 @@ function setupSheet() {
   }
 }
 
-/** Only count paid early bird seats — pending/cancelled do not reduce availability */
-function countPaidEarlyBird_() {
+/** Only paid cohort seats reduce availability — cancelled/failed/pending do not count */
+function countPaidCohortSeats_() {
   const sheet = getSheet_();
   const values = sheet.getDataRange().getValues();
   if (values.length <= 1) return 0;
 
   let count = 0;
   for (let i = 1; i < values.length; i++) {
-    const paymentStatus = String(values[i][COL.PAYMENT_STATUS - 1]).toLowerCase();
-    const tier = String(values[i][COL.TIER - 1]).toLowerCase();
-    if (paymentStatus === "paid" && tier === "early_bird") {
+    const paymentStatus = String(values[i][COL.PAYMENT_STATUS - 1]).trim().toLowerCase();
+    const tier = String(values[i][COL.TIER - 1]).trim().toLowerCase();
+    if (paymentStatus === "paid" && PAID_TIERS.indexOf(tier) !== -1) {
       count++;
     }
   }
@@ -74,15 +76,14 @@ function countPaidEarlyBird_() {
 }
 
 function getStatus_() {
-  const paidCount = countPaidEarlyBird_();
-  const earlyBirdFull = paidCount >= EARLY_BIRD_LIMIT;
+  const paidCount = countPaidCohortSeats_();
+  const cohortFull = paidCount >= COHORT_SEAT_LIMIT;
   return {
     count: paidCount,
-    seatsLeft: Math.max(0, EARLY_BIRD_LIMIT - paidCount),
-    earlyBirdFull,
-    earlyBirdLimit: EARLY_BIRD_LIMIT,
-    currentPrice: earlyBirdFull ? 4999 : 499,
-    regularPrice: 4999,
+    seatsLeft: Math.max(0, COHORT_SEAT_LIMIT - paidCount),
+    cohortFull,
+    seatLimit: COHORT_SEAT_LIMIT,
+    price: COHORT_PRICE,
   };
 }
 
@@ -106,9 +107,9 @@ function appendLead_(data) {
     data.tier || "",
     data.amount || "",
     data.paymentStatus || "pending",
-    "",
-    "",
-    "",
+    data.orderId || "",
+    data.paymentId || "",
+    data.paymentStatus === "paid" ? (data.paidAt || new Date().toISOString()) : "",
   ]);
   return { success: true };
 }

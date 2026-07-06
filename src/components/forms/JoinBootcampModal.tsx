@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useEarlyBirdStatus } from "@/hooks/useEarlyBirdStatus";
+import { useCohortStatus } from "@/hooks/useCohortStatus";
 import { startRazorpayPayment } from "@/lib/razorpay-client";
-import { PRICING } from "@/lib/constants";
+import { COHORT, PRICING } from "@/lib/constants";
 import type { LeadFormData } from "@/lib/google-sheets";
 
 interface JoinBootcampModalProps {
@@ -26,7 +26,6 @@ const initialForm: LeadFormData = {
   whyBootcamp: "",
   hasIdea: "",
   ideaDetails: "",
-  willingToPay: "",
 };
 
 export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
@@ -34,7 +33,7 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const { status, refresh } = useEarlyBirdStatus();
+  const { status, refresh } = useCohortStatus();
 
   useEffect(() => {
     if (open) refresh();
@@ -61,9 +60,7 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const currentPrice = status.earlyBirdFull
-    ? PRICING.regularPrice
-    : PRICING.earlyBirdPrice;
+  const currentPrice = PRICING.price;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,31 +80,28 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
         throw new Error(leadData.error ?? "Failed to submit application");
       }
 
-      const paymentDescription = leadData.tier === "early_bird"
-        ? "EarlyCEO Bootcamp — Early Bird Seat"
-        : "EarlyCEO Bootcamp — Regular Seat";
+      if (leadData.cohortFull) {
+        throw new Error("Cohort 01 is full. Registration is closed.");
+      }
+
+      const paymentDescription = "EarlyCEO Bootcamp — Founding Cohort Special";
 
       await startRazorpayPayment({
         amount: leadData.amount,
         leadId: leadData.leadId,
-        name: form.fullName,
-        email: form.email,
-        phone: form.phone,
+        tier: leadData.tier,
+        form,
         description: paymentDescription,
         onSuccess: () => {
           setSubmitted(true);
           refresh();
         },
-        onDismiss: async () => {
-          await fetch("/api/leads/cancel", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ leadId: leadData.leadId }),
-          });
+        onDismiss: () => {
           setError(
             "Payment was not completed. Your details are saved — our team will reach out to you shortly."
           );
           setSubmitting(false);
+          refresh();
         },
       });
     } catch (err) {
@@ -182,18 +176,21 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                 </p>
 
                 <div className="mt-4 rounded-lg border border-border px-4 py-3 text-sm">
-                  {status.earlyBirdFull ? (
+                  {status.cohortFull ? (
                     <p>
-                      <span className="font-semibold text-foreground">Early Bird Full.</span>{" "}
-                      Current price: ₹{PRICING.regularPrice.toLocaleString("en-IN")}
+                      <span className="font-semibold text-foreground">Cohort 01 is full.</span>{" "}
+                      Registration is closed for this cohort.
                     </p>
                   ) : (
                     <p>
                       <span className="font-semibold text-foreground">
-                        {status.seatsLeft} early bird seats left
-                      </span>{" "}
-                      at ₹{PRICING.earlyBirdPrice} (regular ₹
-                      {PRICING.regularPrice.toLocaleString("en-IN")})
+                        {COHORT.offerLabel}: ₹{PRICING.price.toLocaleString("en-IN")}
+                      </span>
+                      <br />
+                      <span className="text-muted-foreground">
+                        Available only for {COHORT.name}. Only {PRICING.seatLimit} founders
+                        will be accepted — {status.seatsLeft} seats left.
+                      </span>
                     </p>
                   )}
                 </div>
@@ -360,31 +357,6 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                     </motion.div>
                   )}
 
-                  <div>
-                    <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Are you willing to pay ₹{currentPrice.toLocaleString("en-IN")} for the bootcamp? *
-                    </label>
-                    <div className="flex flex-wrap gap-4">
-                      {[
-                        { val: "yes", label: "Yes" },
-                        { val: "no", label: "No" },
-                        { val: "maybe", label: "Need more details" },
-                      ].map(({ val, label }) => (
-                        <label key={val} className="flex items-center gap-2 text-sm">
-                          <input
-                            type="radio"
-                            name="willingToPay"
-                            required
-                            value={val}
-                            checked={form.willingToPay === val}
-                            onChange={(e) => update("willingToPay", e.target.value)}
-                            className="accent-foreground"
-                          />
-                          {label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
                 </div>
 
                 {error && (
@@ -393,12 +365,14 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
 
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || status.cohortFull}
                   className="mt-8 w-full rounded-full bg-foreground py-3.5 text-sm font-semibold uppercase tracking-wider text-background transition-opacity hover:opacity-80 disabled:opacity-50"
                 >
-                  {submitting
-                    ? "Processing..."
-                    : `Submit & Pay ₹${currentPrice.toLocaleString("en-IN")}`}
+                  {status.cohortFull
+                    ? "Cohort Full"
+                    : submitting
+                      ? "Processing..."
+                      : `Submit & Pay ₹${currentPrice.toLocaleString("en-IN")}`}
                 </button>
               </form>
             )}

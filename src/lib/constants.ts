@@ -10,12 +10,13 @@ export const CONTACT = {
 };
 
 export const PRICING = {
-  earlyBirdLimit: 10,
-  earlyBirdPrice: 499,
-  regularPrice: 4999,
+  price: 999,
+  seatLimit: 100,
 };
 
 export const COHORT = {
+  name: "Cohort 01",
+  offerLabel: "Founding Cohort Special",
   registrationCloseDate: "2026-07-19T23:59:59+05:30",
   startDate: "2026-07-20",
   startLabel: "20 July 2026",
@@ -179,8 +180,8 @@ export const FAQS = [
     a: "All 9 days feature live interactive sessions with industry experts. You also get lifetime access to recordings for revision.",
   },
   {
-    q: "What do I get with the Early Bird offer?",
-    a: "The first 10 students get the full bootcamp for ₹499 (regular price ₹4,999), including live sessions, community access, and all program materials.",
+    q: "What is the Founding Cohort Special?",
+    a: "Cohort 01 is available at ₹999 for the full 9-day bootcamp — live sessions, community access, and all program materials. Only 100 founders will be accepted.",
   },
   {
     q: "Is there a certificate?",
@@ -188,7 +189,7 @@ export const FAQS = [
   },
   {
     q: "How do I register?",
-    a: "Click 'Reserve My Seat' or 'Join Bootcamp' to secure your spot. Limited early bird seats are available on a first-come basis.",
+    a: "Click 'Join Bootcamp' to apply and pay ₹999. Seats are limited to 100 founders for Cohort 01 on a first-come basis.",
   },
 ];
 

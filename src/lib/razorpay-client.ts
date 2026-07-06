@@ -1,3 +1,7 @@
+"use client";
+
+import type { LeadFormData } from "@/lib/google-sheets";
+
 declare global {
   interface Window {
     Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
@@ -51,20 +55,40 @@ function loadRazorpayScript(): Promise<boolean> {
 interface StartPaymentParams {
   amount: number;
   leadId: string;
-  name: string;
-  email: string;
-  phone: string;
+  tier: string;
+  form: LeadFormData;
   description: string;
   onSuccess: () => void;
   onDismiss?: () => void;
 }
 
+async function saveLead(
+  form: LeadFormData,
+  meta: {
+    leadId: string;
+    tier: string;
+    amount: number;
+    status: "paid" | "cancelled" | "failed";
+    paymentId?: string;
+    orderId?: string;
+  }
+) {
+  const res = await fetch("/api/leads/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...form, ...meta }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Could not save lead");
+  }
+}
+
 export async function startRazorpayPayment({
   amount,
   leadId,
-  name,
-  email,
-  phone,
+  tier,
+  form,
   description,
   onSuccess,
   onDismiss,
@@ -80,7 +104,13 @@ export async function startRazorpayPayment({
   const orderRes = await fetch("/api/razorpay/order", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount, leadId, name, email, phone }),
+    body: JSON.stringify({
+      amount,
+      leadId,
+      name: form.fullName,
+      email: form.email,
+      phone: form.phone,
+    }),
   });
 
   if (!orderRes.ok) {
@@ -101,32 +131,37 @@ export async function startRazorpayPayment({
     name: "EarlyCEO",
     description,
     order_id: order.orderId,
-    prefill: { name, email, contact: phone },
+    prefill: { name: form.fullName, email: form.email, contact: form.phone },
     theme: { color: "#000000" },
     handler: async (response) => {
-      try {
-        const verifyRes = await fetch("/api/razorpay/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...response, leadId }),
-        });
+      const verifyRes = await fetch("/api/razorpay/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...response,
+          ...form,
+          leadId,
+          tier,
+          amount,
+        }),
+      });
 
-        if (!verifyRes.ok) {
-          throw new Error("Payment verification failed");
-        }
-
-        onSuccess();
-      } catch {
-        await fetch("/api/leads/cancel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ leadId }),
-        });
-        throw new Error("Payment verification failed. Please try again.");
+      if (!verifyRes.ok) {
+        await saveLead(form, { leadId, tier, amount, status: "failed" });
+        throw new Error("Payment verification failed");
       }
+
+      onSuccess();
     },
     modal: {
-      ondismiss: onDismiss,
+      ondismiss: async () => {
+        try {
+          await saveLead(form, { leadId, tier, amount, status: "cancelled" });
+        } catch {
+          // still show dismiss message even if save fails
+        }
+        onDismiss?.();
+      },
     },
   });
 

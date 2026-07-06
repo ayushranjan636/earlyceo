@@ -1,6 +1,6 @@
 import { createHmac } from "crypto";
 import { NextResponse } from "next/server";
-import { updateLeadPayment } from "@/lib/google-sheets";
+import { appendLead, type LeadFormData } from "@/lib/google-sheets";
 
 export async function POST(request: Request) {
   try {
@@ -9,6 +9,9 @@ export async function POST(request: Request) {
       razorpay_payment_id,
       razorpay_signature,
       leadId,
+      tier,
+      amount,
+      ...form
     } = await request.json();
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
@@ -27,10 +30,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
     }
 
-    await updateLeadPayment(leadId, {
+    await appendLead(form as LeadFormData, {
+      leadId,
+      tier,
+      amount,
+      paymentStatus: "paid",
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
-      status: "paid",
     });
 
     return NextResponse.json({ success: true });

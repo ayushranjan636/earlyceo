@@ -5,13 +5,13 @@ import { RotatingText } from "@/components/ui/RotatingText";
 import { DottedArrow } from "@/components/ui/DottedArrow";
 import { Countdown } from "@/components/ui/Countdown";
 import { JoinBootcampButton } from "@/components/ui/JoinBootcampButton";
-import { useEarlyBirdStatus } from "@/hooks/useEarlyBirdStatus";
+import { useCohortStatus } from "@/hooks/useCohortStatus";
 import { COHORT, PRICING } from "@/lib/constants";
 
 export function Hero() {
-  const { status, loading } = useEarlyBirdStatus();
+  const { status, loading } = useCohortStatus();
   const claimed = status.count;
-  const progress = Math.min(100, (claimed / PRICING.earlyBirdLimit) * 100);
+  const progress = Math.min(100, (claimed / PRICING.seatLimit) * 100);
 
   return (
     <section className="px-4 pb-8 pt-2 sm:px-6 lg:px-10">
@@ -119,37 +119,32 @@ export function Hero() {
               <JoinBootcampButton variant="hero" />
 
               <div className="w-full text-center">
-                {status.earlyBirdFull ? (
+                {status.cohortFull ? (
                   <>
                     <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-hero-fg/60">
-                      Early Bird Full
+                      Cohort 01 Full
                     </p>
-                    <div className="mt-1 flex items-baseline justify-center gap-2">
-                      <span className="text-2xl font-bold text-hero-fg">
-                        ₹{PRICING.regularPrice.toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs text-hero-fg/40">
-                      Regular pricing now applies
+                    <p className="mt-2 text-sm text-hero-fg/50">
+                      All {PRICING.seatLimit} founder seats are taken.
                     </p>
                   </>
                 ) : (
                   <>
                     <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-hero-fg/40">
-                      First {PRICING.earlyBirdLimit} seats
+                      {COHORT.offerLabel}
                     </p>
                     <div className="mt-1 flex items-baseline justify-center gap-2">
                       <span className="text-2xl font-bold text-hero-fg">
-                        ₹{PRICING.earlyBirdPrice}
-                      </span>
-                      <span className="text-sm text-hero-fg/40 line-through">
-                        ₹{PRICING.regularPrice.toLocaleString("en-IN")}
+                        ₹{PRICING.price.toLocaleString("en-IN")}
                       </span>
                     </div>
                     <p className="mt-1 text-xs text-hero-fg/40">
+                      Available only for {COHORT.name}
+                    </p>
+                    <p className="mt-1 text-xs text-hero-fg/40">
                       {loading
                         ? "Checking availability..."
-                        : `${status.seatsLeft} of ${PRICING.earlyBirdLimit} remaining`}
+                        : `Only ${PRICING.seatLimit} founders accepted — ${status.seatsLeft} seats left`}
                     </p>
                     <div className="mx-auto mt-2 h-px w-full max-w-[8rem] overflow-hidden rounded-full bg-hero-fg/10">
                       <motion.div

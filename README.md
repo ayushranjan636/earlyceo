@@ -41,10 +41,9 @@ NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_live_xxxxx
 Redeploy after adding variables.
 
 ### How it works
-- Form submissions are saved to your Google Sheet
-- First **10 leads** get **₹499** early bird pricing
-- After 10 leads, hero shows **Early Bird Full** and price becomes **₹4,999**
-- Razorpay checkout opens after form submit; payment status updates in the sheet
+- Form submissions are saved to your Google Sheet after payment
+- **₹999** Founding Cohort Special for **Cohort 01** — only **100** paid seats
+- Razorpay checkout opens after form submit; only successful payments reduce seat count
 
 ## Stack
 
@@ -56,7 +55,7 @@ Redeploy after adding variables.
 
 ## Sections
 
-- Hero with rotating CEO text, early bird pricing, countdown
+- Hero with rotating CEO text, founding cohort pricing, countdown
 - Social proof & statistics
 - CEO for a Day experience
 - 9-day curriculum

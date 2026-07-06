@@ -12,7 +12,7 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "EarlyCEO | Be Early. Build Bigger. Lead the Future.",
   description:
-    "Join the exclusive 9-Day EarlyCEO Bootcamp. Learn entrepreneurship, build your startup, and get the chance to become a CEO for a Day at a real company. Early bird seats from ₹499.",
+    "Join the exclusive 9-Day EarlyCEO Bootcamp. Learn entrepreneurship, build your startup, and get the chance to become a CEO for a Day at a real company. Founding Cohort Special — ₹999 for Cohort 01.",
   keywords: [
     "entrepreneurship bootcamp",
     "startup course",
@@ -24,14 +24,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "EarlyCEO | Build Your First Startup Before Everyone Else",
     description:
-      "9-Day live entrepreneurship bootcamp for students and first-time founders. Early bird from ₹499.",
+      "9-Day live entrepreneurship bootcamp for students and first-time founders. Founding Cohort Special — ₹999.",
     type: "website",
     siteName: "EarlyCEO",
   },
   twitter: {
     card: "summary_large_image",
     title: "EarlyCEO | Be Early. Build Bigger. Lead the Future.",
-    description: "Join the exclusive 9-Day EarlyCEO Bootcamp. Early bird from ₹499.",
+    description: "Join the exclusive 9-Day EarlyCEO Bootcamp. Founding Cohort Special — ₹999.",
   },
 };
 
