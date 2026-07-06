@@ -189,7 +189,7 @@ export const FAQS = [
   },
   {
     q: "How do I register?",
-    a: "Click 'Join Bootcamp' to apply and pay ₹999. Seats are limited to 100 founders for Cohort 01 on a first-come basis.",
+    a: "Click 'Join Bootcamp' to apply and pay ₹999. Cohort 01 accepts up to 100 founders.",
   },
 ];
 

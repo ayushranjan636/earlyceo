@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-import { getCohortStatus, type LeadFormData } from "@/lib/google-sheets";
+import type { LeadFormData } from "@/lib/google-sheets";
 import { PRICING } from "@/lib/constants";
 
 /** Prepare a lead for checkout — does NOT write to the sheet yet */
@@ -15,15 +15,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const status = await getCohortStatus();
-
-    if (status.cohortFull) {
-      return NextResponse.json(
-        { error: "Cohort 01 is full. Registration is closed." },
-        { status: 403 }
-      );
-    }
-
     const leadId = randomUUID();
     const tier = "founding_cohort";
     const amount = PRICING.price;
@@ -33,7 +24,6 @@ export async function POST(request: Request) {
       leadId,
       tier,
       amount,
-      ...status,
     });
   } catch (error) {
     console.error("Failed to prepare lead:", error);

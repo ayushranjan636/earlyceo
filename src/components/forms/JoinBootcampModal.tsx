@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useCohortStatus } from "@/hooks/useCohortStatus";
 import { startRazorpayPayment } from "@/lib/razorpay-client";
 import { COHORT, PRICING } from "@/lib/constants";
 import type { LeadFormData } from "@/lib/google-sheets";
@@ -33,11 +32,6 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const { status, refresh } = useCohortStatus();
-
-  useEffect(() => {
-    if (open) refresh();
-  }, [open, refresh]);
 
   useEffect(() => {
     if (!open) return;
@@ -80,10 +74,6 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
         throw new Error(leadData.error ?? "Failed to submit application");
       }
 
-      if (leadData.cohortFull) {
-        throw new Error("Cohort 01 is full. Registration is closed.");
-      }
-
       const paymentDescription = "EarlyCEO Bootcamp — Founding Cohort Special";
 
       await startRazorpayPayment({
@@ -94,14 +84,12 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
         description: paymentDescription,
         onSuccess: () => {
           setSubmitted(true);
-          refresh();
         },
         onDismiss: () => {
           setError(
             "Payment was not completed. Your details are saved — our team will reach out to you shortly."
           );
           setSubmitting(false);
-          refresh();
         },
       });
     } catch (err) {
@@ -176,23 +164,16 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                 </p>
 
                 <div className="mt-4 rounded-lg border border-border px-4 py-3 text-sm">
-                  {status.cohortFull ? (
-                    <p>
-                      <span className="font-semibold text-foreground">Cohort 01 is full.</span>{" "}
-                      Registration is closed for this cohort.
-                    </p>
-                  ) : (
-                    <p>
-                      <span className="font-semibold text-foreground">
-                        {COHORT.offerLabel}: ₹{PRICING.price.toLocaleString("en-IN")}
-                      </span>
-                      <br />
-                      <span className="text-muted-foreground">
-                        Available only for {COHORT.name}. Only {PRICING.seatLimit} founders
-                        will be accepted — {status.seatsLeft} seats left.
-                      </span>
-                    </p>
-                  )}
+                  <p>
+                    <span className="font-semibold text-foreground">
+                      {COHORT.offerLabel}: ₹{PRICING.price.toLocaleString("en-IN")}
+                    </span>
+                    <br />
+                    <span className="text-muted-foreground">
+                      Available only for {COHORT.name}. Only {PRICING.seatLimit} founders
+                      will be accepted into {COHORT.name}.
+                    </span>
+                  </p>
                 </div>
 
                 <div className="mt-8 space-y-5">
@@ -365,14 +346,12 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
 
                 <button
                   type="submit"
-                  disabled={submitting || status.cohortFull}
+                  disabled={submitting}
                   className="mt-8 w-full rounded-full bg-foreground py-3.5 text-sm font-semibold uppercase tracking-wider text-background transition-opacity hover:opacity-80 disabled:opacity-50"
                 >
-                  {status.cohortFull
-                    ? "Cohort Full"
-                    : submitting
-                      ? "Processing..."
-                      : `Submit & Pay ₹${currentPrice.toLocaleString("en-IN")}`}
+                  {submitting
+                    ? "Processing..."
+                    : `Submit & Pay ₹${currentPrice.toLocaleString("en-IN")}`}
                 </button>
               </form>
             )}
