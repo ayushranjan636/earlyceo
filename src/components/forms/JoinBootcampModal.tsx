@@ -140,13 +140,32 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                   Thank You
                 </h2>
                 <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                  Your seat is confirmed. We will contact you back soon with
-                  bootcamp details and next steps.
+                  Your seat is confirmed. Join the {COHORT.name} community to get
+                  updates, resources, and connect with fellow founders.
                 </p>
+
+                <div className="mx-auto mt-8 max-w-sm rounded-xl border border-border px-5 py-6">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    Community
+                  </p>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Join our WhatsApp group for {COHORT.name}
+                  </p>
+                  <a
+                    href={COHORT.whatsappCommunityUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-8 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                  >
+                    Join Group Now
+                  </a>
+                  <p className="mt-3 text-xs text-muted-foreground">Join us now</p>
+                </div>
+
                 <button
                   type="button"
                   onClick={onClose}
-                  className="mt-8 rounded-full bg-foreground px-8 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-80"
+                  className="mt-8 rounded-full border border-border px-8 py-3 text-sm font-semibold transition-opacity hover:opacity-80"
                 >
                   Close
                 </button>
@@ -173,6 +192,12 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                       Available only for {COHORT.name}. Only {PRICING.seatLimit} founders
                       will be accepted into {COHORT.name}.
                     </span>
+                  </p>
+                  <p className="mt-3 text-muted-foreground">
+                    {COHORT.valueProps.perSession}
+                  </p>
+                  <p className="mt-1 text-muted-foreground">
+                    {COHORT.valueProps.guestLecture}
                   </p>
                 </div>
 

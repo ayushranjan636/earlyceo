@@ -128,6 +128,12 @@ export function Hero() {
                 <p className="mt-1 text-xs text-hero-fg/40">
                   Only {PRICING.seatLimit} founders will be accepted into {COHORT.name}
                 </p>
+                <p className="mt-2 text-xs text-hero-fg/50">
+                  {COHORT.valueProps.perSession}
+                </p>
+                <p className="mt-1 text-xs text-hero-fg/45">
+                  {COHORT.valueProps.guestLecture}
+                </p>
               </div>
             </motion.div>
 
