@@ -11,36 +11,36 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Deploy on Vercel
+
+1. Import the GitHub repo: https://github.com/ayushranjan636/earlyceo
+2. In **Project Settings → Build & Deployment → Framework Settings**:
+   - **Framework Preset:** `Next.js` (not "Other")
+   - **Root Directory:** leave empty (project root)
+   - **Build Command:** `npm run build`
+   - **Output Directory:** leave empty (do not set to `out` or `dist`)
+   - **Install Command:** `npm install`
+3. **Node.js Version:** 22.x (or 20.19+)
+4. Redeploy with **Clear build cache** enabled
+
+If you still see `404: NOT_FOUND` after a successful build, delete the Vercel project and re-import the repo fresh from GitHub.
+
 ## Stack
 
 - **Next.js 16** (App Router)
 - **TypeScript**
 - **Tailwind CSS v4**
-- **Framer Motion** — scroll reveals, stagger, magnetic buttons
-- **next-themes** — dark / light / system theme
+- **Framer Motion**
 - **Lucide Icons**
 
 ## Sections
 
-- Hero with countdown, early bird pricing, particle background
-- Social proof & animated statistics
-- Why EarlyCEO feature grid
-- Who Should Join interactive cards
-- 9-day curriculum timeline
-- Comparison table (EarlyCEO vs Others)
-- CEO for a Day flagship program
-- Pricing with bonuses
-- Infinite-scroll testimonials
-- FAQ accordion
-- Footer with newsletter
-
-## Theme
-
-Dark mode is the default. Use the header toggle to switch between dark, light, and system themes.
-
-## Next Steps
-
-- [ ] Razorpay payment integration for "Reserve My Seat"
-- [ ] Supabase/Firebase for form submissions
-- [ ] WhatsApp integration
-- [ ] Real testimonial photos and partner logos
+- Hero with rotating CEO text, early bird pricing, countdown
+- Social proof & statistics
+- CEO for a Day experience
+- 9-day curriculum
+- Who Should Join
+- Comparison table
+- Testimonials
+- About (founder, team, contact)
+- Join Bootcamp application form
