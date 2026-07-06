@@ -1,7 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
-import { CohortOffer } from "@/components/sections/CohortOffer";
+import { HeroHighlights } from "@/components/sections/HeroHighlights";
 import { SocialProof } from "@/components/sections/SocialProof";
 import { About } from "@/components/sections/About";
 import { CEODay } from "@/components/sections/CEODay";
@@ -16,7 +16,7 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
-        <CohortOffer />
+        <HeroHighlights />
         <SocialProof />
         <CEODay />
         <Curriculum />

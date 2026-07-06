@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { COHORT } from "@/lib/constants";
+import { getTimeLeftIST, IST_LABEL, toISTDate } from "@/lib/ist";
 
 interface CountdownProps {
   targetDate?: Date | string;
@@ -9,26 +10,19 @@ interface CountdownProps {
   label?: string;
 }
 
-function getTimeLeft(target: Date) {
-  const diff = Math.max(0, target.getTime() - Date.now());
-  return {
-    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((diff / (1000 * 60)) % 60),
-    seconds: Math.floor((diff / 1000) % 60),
-  };
-}
-
 export function Countdown({
   targetDate,
   variant = "default",
   label,
 }: CountdownProps) {
-  const target = new Date(targetDate ?? COHORT.registrationCloseDate);
-  const [time, setTime] = useState(getTimeLeft(target));
+  const target = useMemo(() => {
+    if (targetDate instanceof Date) return targetDate;
+    return toISTDate(targetDate ?? COHORT.registrationCloseDate);
+  }, [targetDate]);
+  const [time, setTime] = useState(() => getTimeLeftIST(target));
 
   useEffect(() => {
-    const interval = setInterval(() => setTime(getTimeLeft(target)), 1000);
+    const interval = setInterval(() => setTime(getTimeLeftIST(target)), 1000);
     return () => clearInterval(interval);
   }, [target]);
 
@@ -44,7 +38,13 @@ export function Countdown({
   return (
     <div className="flex flex-col items-center gap-2">
       {label && (
-        <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-hero-fg/40">
+        <p
+          className={
+            isHero
+              ? "text-[10px] font-semibold uppercase tracking-[0.15em] text-hero-fg/40"
+              : "text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground"
+          }
+        >
           {label}
         </p>
       )}
@@ -79,6 +79,15 @@ export function Countdown({
           </div>
         ))}
       </div>
+      <p
+        className={
+          isHero
+            ? "text-[9px] uppercase tracking-wider text-hero-fg/30"
+            : "text-[10px] uppercase tracking-wider text-muted-foreground"
+        }
+      >
+        {IST_LABEL}
+      </p>
     </div>
   );
 }

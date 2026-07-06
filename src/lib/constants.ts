@@ -17,7 +17,7 @@ export const PRICING = {
 export const COHORT = {
   name: "Cohort 01",
   offerLabel: "Founding Cohort Special",
-  registrationCloseDate: "2026-07-19T23:59:59+05:30",
+  registrationCloseDate: "2026-07-19T23:59:59+05:30", // 19 Jul 2026, 11:59:59 PM IST
   startDate: "2026-07-20",
   startLabel: "20 July 2026",
   registrationCloseLabel: "19 July 2026",
