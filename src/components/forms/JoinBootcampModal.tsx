@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { useEarlyBirdStatus } from "@/hooks/useEarlyBirdStatus";
+import { startRazorpayPayment } from "@/lib/razorpay-client";
+import { PRICING } from "@/lib/constants";
+import type { LeadFormData } from "@/lib/google-sheets";
 
 interface JoinBootcampModalProps {
   open: boolean;
@@ -11,7 +15,7 @@ interface JoinBootcampModalProps {
 
 const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
 
-const initialForm = {
+const initialForm: LeadFormData = {
   fullName: "",
   age: "",
   gender: "",
@@ -28,6 +32,13 @@ const initialForm = {
 export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
   const [form, setForm] = useState(initialForm);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const { status, refresh } = useEarlyBirdStatus();
+
+  useEffect(() => {
+    if (open) refresh();
+  }, [open, refresh]);
 
   useEffect(() => {
     if (!open) return;
@@ -41,16 +52,68 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
     if (!open) {
       setSubmitted(false);
       setForm(initialForm);
+      setError("");
+      setSubmitting(false);
     }
   }, [open]);
 
-  const update = (field: keyof typeof form, value: string) => {
+  const update = (field: keyof LeadFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const currentPrice = status.earlyBirdFull
+    ? PRICING.regularPrice
+    : PRICING.earlyBirdPrice;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const leadRes = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const leadData = await leadRes.json();
+
+      if (!leadRes.ok) {
+        throw new Error(leadData.error ?? "Failed to submit application");
+      }
+
+      const paymentDescription = leadData.tier === "early_bird"
+        ? "EarlyCEO Bootcamp — Early Bird Seat"
+        : "EarlyCEO Bootcamp — Regular Seat";
+
+      await startRazorpayPayment({
+        amount: leadData.amount,
+        leadId: leadData.leadId,
+        name: form.fullName,
+        email: form.email,
+        phone: form.phone,
+        description: paymentDescription,
+        onSuccess: () => {
+          setSubmitted(true);
+          refresh();
+        },
+        onDismiss: async () => {
+          await fetch("/api/leads/cancel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ leadId: leadData.leadId }),
+          });
+          setError(
+            "Payment was not completed. Your details are saved — our team will reach out to you shortly."
+          );
+          setSubmitting(false);
+        },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setSubmitting(false);
+    }
   };
 
   const inputClass =
@@ -89,14 +152,14 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
             {submitted ? (
               <div className="px-8 py-16 text-center sm:px-12">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Application Received
+                  Payment Successful
                 </p>
                 <h2 className="mt-4 text-2xl font-bold uppercase tracking-tight sm:text-3xl">
                   Thank You
                 </h2>
                 <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                  Thank you for applying. We will contact you back soon with the
-                  next steps for the bootcamp.
+                  Your seat is confirmed. We will contact you back soon with
+                  bootcamp details and next steps.
                 </p>
                 <button
                   type="button"
@@ -115,8 +178,25 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                   Application Form
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Fill in your details. We review every application personally.
+                  Fill in your details. Payment is required to confirm your seat.
                 </p>
+
+                <div className="mt-4 rounded-lg border border-border px-4 py-3 text-sm">
+                  {status.earlyBirdFull ? (
+                    <p>
+                      <span className="font-semibold text-foreground">Early Bird Full.</span>{" "}
+                      Current price: ₹{PRICING.regularPrice.toLocaleString("en-IN")}
+                    </p>
+                  ) : (
+                    <p>
+                      <span className="font-semibold text-foreground">
+                        {status.seatsLeft} early bird seats left
+                      </span>{" "}
+                      at ₹{PRICING.earlyBirdPrice} (regular ₹
+                      {PRICING.regularPrice.toLocaleString("en-IN")})
+                    </p>
+                  )}
+                </div>
 
                 <div className="mt-8 space-y-5">
                   <div>
@@ -282,7 +362,7 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
 
                   <div>
                     <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Are you willing to pay ₹4,999 for the bootcamp? *
+                      Are you willing to pay ₹{currentPrice.toLocaleString("en-IN")} for the bootcamp? *
                     </label>
                     <div className="flex flex-wrap gap-4">
                       {[
@@ -304,17 +384,21 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                         </label>
                       ))}
                     </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      First 10 seats are available at ₹499. Regular price is ₹4,999.
-                    </p>
                   </div>
                 </div>
 
+                {error && (
+                  <p className="mt-4 text-sm text-red-600">{error}</p>
+                )}
+
                 <button
                   type="submit"
-                  className="mt-8 w-full rounded-full bg-foreground py-3.5 text-sm font-semibold uppercase tracking-wider text-background transition-opacity hover:opacity-80"
+                  disabled={submitting}
+                  className="mt-8 w-full rounded-full bg-foreground py-3.5 text-sm font-semibold uppercase tracking-wider text-background transition-opacity hover:opacity-80 disabled:opacity-50"
                 >
-                  Submit Application
+                  {submitting
+                    ? "Processing..."
+                    : `Submit & Pay ₹${currentPrice.toLocaleString("en-IN")}`}
                 </button>
               </form>
             )}

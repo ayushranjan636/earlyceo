@@ -5,11 +5,14 @@ import { RotatingText } from "@/components/ui/RotatingText";
 import { DottedArrow } from "@/components/ui/DottedArrow";
 import { Countdown } from "@/components/ui/Countdown";
 import { JoinBootcampButton } from "@/components/ui/JoinBootcampButton";
-
-const SEATS_TOTAL = 10;
-const SEATS_LEFT = 7;
+import { useEarlyBirdStatus } from "@/hooks/useEarlyBirdStatus";
+import { COHORT, PRICING } from "@/lib/constants";
 
 export function Hero() {
+  const { status, loading } = useEarlyBirdStatus();
+  const claimed = status.count;
+  const progress = Math.min(100, (claimed / PRICING.earlyBirdLimit) * 100);
+
   return (
     <section className="px-4 pb-8 pt-2 sm:px-6 lg:px-10">
       <motion.div
@@ -26,21 +29,22 @@ export function Hero() {
           }}
         />
 
-        <div className="relative flex min-h-[78vh] flex-col justify-between px-8 py-12 sm:px-12 sm:py-16 lg:min-h-[85vh] lg:px-16 lg:py-20">
-          <DottedArrow className="absolute left-8 top-28 text-hero-fg/40 sm:left-16 sm:top-32" />
-          <DottedArrow className="absolute right-12 top-20 rotate-180 text-hero-fg/30 sm:right-20" />
+        <div className="relative flex min-h-[78vh] flex-col px-6 py-10 sm:px-12 sm:py-16 lg:min-h-[85vh] lg:px-16 lg:py-20">
+          <DottedArrow className="absolute left-6 top-24 hidden text-hero-fg/40 sm:left-16 sm:top-32 sm:block" />
+          <DottedArrow className="absolute right-8 top-16 hidden rotate-180 text-hero-fg/30 sm:right-20 sm:top-20 sm:block" />
 
+          {/* Top content */}
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="mb-6 text-[11px] font-semibold uppercase tracking-[0.25em] text-hero-fg/50"
+              className="mb-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-hero-fg/50 sm:mb-6 sm:text-[11px] sm:tracking-[0.25em]"
             >
               9-Day Entrepreneurship Bootcamp
             </motion.p>
 
-            <h1 className="max-w-4xl text-4xl font-bold uppercase leading-[1.05] tracking-tight text-hero-fg sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
+            <h1 className="max-w-4xl text-3xl font-bold uppercase leading-[1.08] tracking-tight text-hero-fg sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -63,7 +67,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, duration: 0.6 }}
-              className="mt-8 text-2xl font-bold uppercase tracking-wide text-hero-fg sm:text-3xl md:text-4xl"
+              className="mt-6 text-xl font-bold uppercase tracking-wide text-hero-fg sm:mt-8 sm:text-3xl md:text-4xl"
               style={{ perspective: 600 }}
             >
               <RotatingText />
@@ -73,19 +77,31 @@ export function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="mt-6 max-w-md text-sm leading-relaxed text-hero-fg/55 sm:text-base"
+              className="mt-5 max-w-sm text-sm leading-relaxed text-hero-fg/55 sm:mt-6 sm:max-w-md sm:text-base"
             >
-              One real day inside a registered company.
-              One CEO selected per cohort. Not a simulation.
+              One real day inside a registered company. One CEO selected per
+              cohort. Not a simulation.
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.75 }}
+              className="mt-3 max-w-sm text-sm leading-relaxed text-hero-fg/45 sm:hidden"
+            >
+              A practical bootcamp for students who want to build startups —
+              not watch videos about them.
             </motion.p>
           </div>
 
-          <div className="mt-10 grid gap-8 lg:grid-cols-3 lg:items-end">
+          {/* Bottom section — stacked & centered on mobile */}
+          <div className="mt-8 flex flex-col items-center gap-8 sm:mt-10 lg:grid lg:grid-cols-3 lg:items-end lg:gap-8">
+            {/* Left — desktop only */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
-              className="max-w-xs"
+              className="hidden max-w-xs lg:block"
             >
               <p className="text-sm leading-relaxed text-hero-fg/50">
                 A practical bootcamp for students who want to build startups —
@@ -93,48 +109,92 @@ export function Hero() {
               </p>
             </motion.div>
 
+            {/* Center — CTA + pricing */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9 }}
-              className="flex flex-col items-center gap-4"
+              className="flex w-full max-w-xs flex-col items-center gap-5"
             >
               <JoinBootcampButton variant="hero" />
 
-              <div className="text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-hero-fg/40">
-                  First {SEATS_TOTAL} seats
-                </p>
-                <div className="mt-1 flex items-baseline justify-center gap-2">
-                  <span className="text-2xl font-bold text-hero-fg">₹499</span>
-                  <span className="text-sm text-hero-fg/40 line-through">₹4,999</span>
-                </div>
-                <p className="mt-1 text-xs text-hero-fg/40">
-                  {SEATS_LEFT} of {SEATS_TOTAL} remaining
-                </p>
-                <div className="mx-auto mt-2 h-px w-32 overflow-hidden rounded-full bg-hero-fg/10">
-                  <motion.div
-                    className="h-full bg-hero-fg/60"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${((SEATS_TOTAL - SEATS_LEFT) / SEATS_TOTAL) * 100}%` }}
-                    transition={{ duration: 1.2, delay: 1, ease: "easeOut" }}
-                  />
-                </div>
+              <div className="w-full text-center">
+                {status.earlyBirdFull ? (
+                  <>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-hero-fg/60">
+                      Early Bird Full
+                    </p>
+                    <div className="mt-1 flex items-baseline justify-center gap-2">
+                      <span className="text-2xl font-bold text-hero-fg">
+                        ₹{PRICING.regularPrice.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-hero-fg/40">
+                      Regular pricing now applies
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-hero-fg/40">
+                      First {PRICING.earlyBirdLimit} seats
+                    </p>
+                    <div className="mt-1 flex items-baseline justify-center gap-2">
+                      <span className="text-2xl font-bold text-hero-fg">
+                        ₹{PRICING.earlyBirdPrice}
+                      </span>
+                      <span className="text-sm text-hero-fg/40 line-through">
+                        ₹{PRICING.regularPrice.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-hero-fg/40">
+                      {loading
+                        ? "Checking availability..."
+                        : `${status.seatsLeft} of ${PRICING.earlyBirdLimit} remaining`}
+                    </p>
+                    <div className="mx-auto mt-2 h-px w-full max-w-[8rem] overflow-hidden rounded-full bg-hero-fg/10">
+                      <motion.div
+                        className="h-full bg-hero-fg/60"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 1.2, delay: 1, ease: "easeOut" }}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
 
+            {/* Right — countdown + cohort dates */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1 }}
-              className="flex flex-col items-end gap-3 lg:text-right"
+              className="flex w-full max-w-xs flex-col items-center gap-4 text-center lg:items-end lg:text-right"
             >
-              <p className="max-w-xs text-sm leading-relaxed text-hero-fg/50">
+              <p className="hidden max-w-xs text-sm leading-relaxed text-hero-fg/50 lg:block">
                 Not an online course.
                 <br />
                 Not theory.
               </p>
-              <Countdown variant="hero" />
+
+              <div className="w-full rounded-xl border border-hero-fg/10 px-4 py-4 sm:px-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-hero-fg/50">
+                  1st Cohort starts {COHORT.startLabel}
+                </p>
+                <p className="mt-1 text-xs text-hero-fg/40">
+                  Registration closes {COHORT.registrationCloseLabel}
+                </p>
+                <div className="mt-4 flex justify-center lg:justify-end">
+                  <Countdown
+                    variant="hero"
+                    label="Registration closes in"
+                  />
+                </div>
+              </div>
+
+              <p className="text-xs text-hero-fg/40 lg:hidden">
+                Not an online course. Not theory.
+              </p>
             </motion.div>
           </div>
         </div>

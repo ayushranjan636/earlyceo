@@ -9,6 +9,19 @@ export const CONTACT = {
   email: "hello@earlyceo.online",
 };
 
+export const PRICING = {
+  earlyBirdLimit: 10,
+  earlyBirdPrice: 499,
+  regularPrice: 4999,
+};
+
+export const COHORT = {
+  registrationCloseDate: "2026-07-19T23:59:59+05:30",
+  startDate: "2026-07-20",
+  startLabel: "20 July 2026",
+  registrationCloseLabel: "19 July 2026",
+};
+
 export const FOUNDER = {
   name: "Mr. Ayush Ranjan",
   roles: [

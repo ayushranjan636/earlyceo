@@ -11,19 +11,40 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+## Setup (Google Sheets + Razorpay)
 
-1. Import the GitHub repo: https://github.com/ayushranjan636/earlyceo
-2. In **Project Settings → Build & Deployment → Framework Settings**:
-   - **Framework Preset:** `Next.js` (not "Other")
-   - **Root Directory:** leave empty (project root)
-   - **Build Command:** `npm run build`
-   - **Output Directory:** leave empty (do not set to `out` or `dist`)
-   - **Install Command:** `npm install`
-3. **Node.js Version:** 22.x (or 20.19+)
-4. Redeploy with **Clear build cache** enabled
+### 1. Google Sheet
+Sheet: [earlyCEO-leads](https://docs.google.com/spreadsheets/d/1IFJsudd5gaWxmqESYzkb0WAUCfkDkmV0DvwvpGHaQcQ/edit)
 
-If you still see `404: NOT_FOUND` after a successful build, delete the Vercel project and re-import the repo fresh from GitHub.
+1. Open the sheet → **Extensions → Apps Script**
+2. Paste code from `scripts/google-apps-script.js`
+3. Run `setupSheet()` once (authorize when prompted)
+4. **Deploy → New deployment → Web app**
+   - Execute as: **Me**
+   - Who has access: **Anyone**
+5. Copy the Web App URL
+
+### 2. Razorpay
+1. Create keys at [Razorpay Dashboard](https://dashboard.razorpay.com/)
+2. Use test keys first, then live keys for production
+
+### 3. Vercel Environment Variables
+Add these in **Vercel → Project → Settings → Environment Variables**:
+
+```
+GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/XXXX/exec
+RAZORPAY_KEY_ID=rzp_live_xxxxx
+RAZORPAY_KEY_SECRET=your_secret
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_live_xxxxx
+```
+
+Redeploy after adding variables.
+
+### How it works
+- Form submissions are saved to your Google Sheet
+- First **10 leads** get **₹499** early bird pricing
+- After 10 leads, hero shows **Early Bird Full** and price becomes **₹4,999**
+- Razorpay checkout opens after form submit; payment status updates in the sheet
 
 ## Stack
 
