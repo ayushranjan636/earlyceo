@@ -13,7 +13,7 @@ const NAV_LEFT = [
 export function Header() {
   return (
     <header className="relative z-50">
-      <div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between px-6 lg:px-10">
+      <div className="relative mx-auto flex h-20 max-w-[1400px] items-center justify-center px-6 md:justify-between lg:px-10">
         <nav className="hidden items-center gap-8 md:flex">
           {NAV_LEFT.map((link) => (
             <a
@@ -26,7 +26,10 @@ export function Header() {
           ))}
         </nav>
 
-        <Link href="/" className="absolute left-1/2 -translate-x-1/2">
+        <Link
+          href="/"
+          className="md:absolute md:left-1/2 md:-translate-x-1/2"
+        >
           <Image
             src="/early-ceo-black-logo.png"
             alt="EarlyCEO"
@@ -37,7 +40,7 @@ export function Header() {
           />
         </Link>
 
-        <div className="ml-auto">
+        <div className="hidden md:ml-auto md:block">
           <JoinBootcampButton variant="header" />
         </div>
       </div>
