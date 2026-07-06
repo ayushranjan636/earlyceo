@@ -55,9 +55,14 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border pt-8 sm:flex-row">
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} EarlyCEO
-          </p>
+          <div className="text-center sm:text-left">
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} EarlyCEO
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              This initiative is run by SlateMate Private Limited
+            </p>
+          </div>
           <div className="flex gap-6">
             <Link href="#" className="text-xs text-muted-foreground hover:text-foreground">
               Privacy
