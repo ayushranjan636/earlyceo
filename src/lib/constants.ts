@@ -24,8 +24,8 @@ export const COHORT = {
   whatsappCommunityUrl:
     "https://chat.whatsapp.com/F3LFxVY7PKUKr1JkaEV5l9?mode=gi_t",
   valueProps: {
-    perSession: "Less than ₹100 per day or per session",
-    guestLecture: "One guest lecture is fully free — a Big Face will be there",
+    perSession: "Less than ₹100 per session",
+    guestLecture: "A free guest session with a big startup face",
   },
 };
 
