@@ -91,6 +91,10 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
           );
           setSubmitting(false);
         },
+        onFailed: (message) => {
+          setError(message);
+          setSubmitting(false);
+        },
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

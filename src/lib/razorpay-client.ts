@@ -29,6 +29,15 @@ interface RazorpayOptions {
 
 interface RazorpayInstance {
   open: () => void;
+  on: (event: string, handler: (response: RazorpayFailedResponse) => void) => void;
+}
+
+interface RazorpayFailedResponse {
+  error: {
+    code: string;
+    description: string;
+    reason?: string;
+  };
 }
 
 interface RazorpaySuccessResponse {
@@ -60,6 +69,7 @@ interface StartPaymentParams {
   description: string;
   onSuccess: () => void;
   onDismiss?: () => void;
+  onFailed?: (message: string) => void;
 }
 
 async function saveLead(
@@ -92,6 +102,7 @@ export async function startRazorpayPayment({
   description,
   onSuccess,
   onDismiss,
+  onFailed,
 }: StartPaymentParams) {
   const keyRes = await fetch("/api/razorpay/key");
   const keyData = await keyRes.json();
@@ -114,10 +125,14 @@ export async function startRazorpayPayment({
   });
 
   if (!orderRes.ok) {
-    throw new Error("Could not create payment order");
+    const err = await orderRes.json().catch(() => ({}));
+    throw new Error(
+      (err as { error?: string }).error ?? "Could not create payment order"
+    );
   }
 
   const order = await orderRes.json();
+  const orderId = order.order_id ?? order.orderId;
   const loaded = await loadRazorpayScript();
 
   if (!loaded) {
@@ -130,28 +145,37 @@ export async function startRazorpayPayment({
     currency: order.currency,
     name: "EarlyCEO",
     description,
-    order_id: order.orderId,
+    order_id: orderId,
     prefill: { name: form.fullName, email: form.email, contact: form.phone },
     theme: { color: "#000000" },
     handler: async (response) => {
-      const verifyRes = await fetch("/api/razorpay/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...response,
-          ...form,
-          leadId,
-          tier,
-          amount,
-        }),
-      });
+      try {
+        const verifyRes = await fetch("/api/razorpay/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...response,
+            ...form,
+            leadId,
+            tier,
+            amount,
+          }),
+        });
 
-      if (!verifyRes.ok) {
-        await saveLead(form, { leadId, tier, amount, status: "failed" });
-        throw new Error("Payment verification failed");
+        if (!verifyRes.ok) {
+          const err = await verifyRes.json().catch(() => ({}));
+          await saveLead(form, { leadId, tier, amount, status: "failed" });
+          throw new Error(
+            (err as { error?: string }).error ?? "Payment verification failed"
+          );
+        }
+
+        onSuccess();
+      } catch (error) {
+        onFailed?.(
+          error instanceof Error ? error.message : "Payment verification failed"
+        );
       }
-
-      onSuccess();
     },
     modal: {
       ondismiss: async () => {
@@ -163,6 +187,15 @@ export async function startRazorpayPayment({
         onDismiss?.();
       },
     },
+  });
+
+  rzp.on("payment.failed", async (response) => {
+    try {
+      await saveLead(form, { leadId, tier, amount, status: "failed" });
+    } catch {
+      // ignore save errors
+    }
+    onFailed?.(response.error.description ?? "Payment failed. Please try again.");
   });
 
   rzp.open();

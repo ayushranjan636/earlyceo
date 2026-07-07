@@ -8,7 +8,6 @@ import { CEODay } from "@/components/sections/CEODay";
 import { WhoShouldJoin } from "@/components/sections/WhoShouldJoin";
 import { Curriculum } from "@/components/sections/Curriculum";
 import { Comparison } from "@/components/sections/Comparison";
-import { Testimonials } from "@/components/sections/Testimonials";
 
 export default function Home() {
   return (
@@ -22,7 +21,6 @@ export default function Home() {
         <Curriculum />
         <WhoShouldJoin />
         <Comparison />
-        <Testimonials />
         <About />
       </main>
       <Footer />

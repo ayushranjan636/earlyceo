@@ -1,20 +1,16 @@
 import { NextResponse } from "next/server";
-import { appendLead, type LeadFormData } from "@/lib/google-sheets";
 import {
   RazorpayHandlerError,
   verifyRazorpayPaymentSignature,
 } from "@/lib/razorpay-handlers";
 
+/** Standard Razorpay checkout alias — POST /api/verify-payment */
 export async function POST(request: Request) {
   try {
     const {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      leadId,
-      tier,
-      amount,
-      ...form
     } = await request.json();
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -34,22 +30,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
     }
 
-    await appendLead(form as LeadFormData, {
-      leadId,
-      tier,
-      amount,
-      paymentStatus: "paid",
-      paymentId: razorpay_payment_id,
-      orderId: razorpay_order_id,
-    });
-
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof RazorpayHandlerError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error("Payment verification failed:", error);
     return NextResponse.json(
       { error: "Payment verification failed" },
       { status: 500 }

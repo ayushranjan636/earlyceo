@@ -31,6 +31,7 @@ export const COHORT = {
 
 export const FOUNDER = {
   name: "Mr. Ayush Ranjan",
+  linkedin: "https://www.linkedin.com/in/ayushranjan636/",
   roles: [
     "Founder & CEO at SlateMate Private Limited",
     "Director at Nextsens Global Private Limited",

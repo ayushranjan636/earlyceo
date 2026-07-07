@@ -25,8 +25,22 @@ Sheet: [earlyCEO-leads](https://docs.google.com/spreadsheets/d/1IFJsudd5gaWxmqES
 5. Copy the Web App URL
 
 ### 2. Razorpay
-1. Create keys at [Razorpay Dashboard](https://dashboard.razorpay.com/)
-2. Use test keys first, then live keys for production
+1. Copy `.env.example` to `.env.local`
+2. Add your keys from [Razorpay Dashboard](https://dashboard.razorpay.com/)
+3. Use test keys first, then live keys for production
+
+Required variables:
+```
+RAZORPAY_KEY_ID=rzp_test_xxxxx
+RAZORPAY_KEY_SECRET=your_secret
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_xxxxx
+```
+
+API routes:
+- `POST /api/razorpay/order` — create order (used by checkout)
+- `POST /api/create-order` — standard alias for order creation
+- `POST /api/razorpay/verify` — verify signature + save paid lead
+- `POST /api/verify-payment` — standard alias for signature verification
 
 ### 3. Vercel Environment Variables
 Add these in **Vercel → Project → Settings → Environment Variables**:

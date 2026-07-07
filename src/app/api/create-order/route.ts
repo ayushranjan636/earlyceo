@@ -4,17 +4,10 @@ import {
   RazorpayHandlerError,
 } from "@/lib/razorpay-handlers";
 
+/** Standard Razorpay checkout alias — POST /api/create-order */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-
-    if (!body.leadId) {
-      return NextResponse.json(
-        { error: "Lead ID is required" },
-        { status: 400 }
-      );
-    }
-
     const order = await createRazorpayOrder(body);
     return NextResponse.json(order);
   } catch (error) {
@@ -23,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { error: "Unable to start payment. Please try again." },
+      { error: "Unable to create payment order" },
       { status: 500 }
     );
   }
