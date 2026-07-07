@@ -19,18 +19,29 @@ export function Countdown({
     if (targetDate instanceof Date) return targetDate;
     return toISTDate(targetDate ?? COHORT.registrationCloseDate);
   }, [targetDate]);
-  const [time, setTime] = useState(() => getTimeLeftIST(target));
+  const [time, setTime] = useState<ReturnType<typeof getTimeLeftIST> | null>(
+    null
+  );
 
   useEffect(() => {
-    const interval = setInterval(() => setTime(getTimeLeftIST(target)), 1000);
+    const update = () => setTime(getTimeLeftIST(target));
+    update();
+    const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, [target]);
 
+  const display = time ?? {
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  };
+
   const units = [
-    { label: "D", value: time.days },
-    { label: "H", value: time.hours },
-    { label: "M", value: time.minutes },
-    { label: "S", value: time.seconds },
+    { label: "D", value: display.days },
+    { label: "H", value: display.hours },
+    { label: "M", value: display.minutes },
+    { label: "S", value: display.seconds },
   ];
 
   const isHero = variant === "hero";

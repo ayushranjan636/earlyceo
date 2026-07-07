@@ -1,9 +1,13 @@
-import { randomUUID } from "crypto";
+import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
-import type { LeadFormData } from "@/lib/google-sheets";
-import { PRICING } from "@/lib/constants";
+import { COHORT } from "@/lib/constants";
+import { appendLead, type LeadFormData } from "@/lib/google-sheets";
 
-/** Prepare a lead for checkout — does NOT write to the sheet yet */
+function generateRegistrationNumber() {
+  return `EC01-${randomBytes(3).toString("hex").toUpperCase()}`;
+}
+
+/** Submit a selective cohort application — no payment at this stage */
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as LeadFormData;
@@ -15,20 +19,37 @@ export async function POST(request: Request) {
       );
     }
 
-    const leadId = randomUUID();
-    const tier = "founding_cohort";
-    const amount = PRICING.price;
+    if (
+      !body.whyBootcamp ||
+      !body.willingToPay ||
+      !body.whySelectYou ||
+      !body.commitmentLevel ||
+      !body.ceoDayApproach
+    ) {
+      return NextResponse.json(
+        { error: "Please complete all required application questions" },
+        { status: 400 }
+      );
+    }
+
+    const registrationNumber = generateRegistrationNumber();
+
+    await appendLead(body, {
+      leadId: registrationNumber,
+      cohort: COHORT.name,
+      amount: 0,
+      paymentStatus: "applied",
+      reviewStatus: "pending",
+    });
 
     return NextResponse.json({
       success: true,
-      leadId,
-      tier,
-      amount,
+      registrationNumber,
     });
   } catch (error) {
-    console.error("Failed to prepare lead:", error);
+    console.error("Failed to submit application:", error);
     return NextResponse.json(
-      { error: "Unable to process application. Please try again." },
+      { error: "Unable to submit application. Please try again." },
       { status: 500 }
     );
   }

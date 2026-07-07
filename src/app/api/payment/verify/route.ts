@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { COHORT } from "@/lib/constants";
-import { appendLead, type LeadFormData } from "@/lib/google-sheets";
 import {
   RazorpayHandlerError,
   verifyRazorpayPaymentSignature,
 } from "@/lib/razorpay-handlers";
+import { updateLeadPayment } from "@/lib/google-sheets";
 
 export async function POST(request: Request) {
   try {
@@ -13,11 +12,9 @@ export async function POST(request: Request) {
       razorpay_payment_id,
       razorpay_signature,
       leadId,
-      amount,
-      ...form
     } = await request.json();
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !leadId) {
       return NextResponse.json(
         { error: "Missing payment verification fields" },
         { status: 400 }
@@ -34,14 +31,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
     }
 
-    await appendLead(form as LeadFormData, {
-      leadId,
-      cohort: COHORT.name,
-      amount,
-      paymentStatus: "paid",
-      reviewStatus: "selected",
+    await updateLeadPayment(leadId, {
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
+      status: "paid",
     });
 
     return NextResponse.json({ success: true });

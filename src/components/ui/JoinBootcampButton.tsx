@@ -22,7 +22,7 @@ export function JoinBootcampButton({ variant = "header", className }: JoinBootca
 
   return (
     <button type="button" onClick={openForm} className={cn(styles[variant], className)}>
-      Join Bootcamp
+      Apply Now
       <ArrowUpRight className={variant === "hero" ? "h-3.5 w-3.5" : "h-3.5 w-3.5"} />
     </button>
   );

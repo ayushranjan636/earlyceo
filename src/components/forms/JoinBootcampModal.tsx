@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { startRazorpayPayment } from "@/lib/razorpay-client";
-import { COHORT, PRICING } from "@/lib/constants";
+import { COHORT } from "@/lib/constants";
 import type { LeadFormData } from "@/lib/google-sheets";
 
 interface JoinBootcampModalProps {
@@ -25,11 +24,16 @@ const initialForm: LeadFormData = {
   whyBootcamp: "",
   hasIdea: "",
   ideaDetails: "",
+  willingToPay: "",
+  whySelectYou: "",
+  commitmentLevel: "",
+  ceoDayApproach: "",
 };
 
 export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
   const [form, setForm] = useState(initialForm);
   const [submitted, setSubmitted] = useState(false);
+  const [registrationNumber, setRegistrationNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,6 +48,7 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
   useEffect(() => {
     if (!open) {
       setSubmitted(false);
+      setRegistrationNumber("");
       setForm(initialForm);
       setError("");
       setSubmitting(false);
@@ -54,50 +59,29 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const currentPrice = PRICING.price;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError("");
 
     try {
-      const leadRes = await fetch("/api/leads", {
+      const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
-      const leadData = await leadRes.json();
+      const data = await res.json();
 
-      if (!leadRes.ok) {
-        throw new Error(leadData.error ?? "Failed to submit application");
+      if (!res.ok) {
+        throw new Error(data.error ?? "Failed to submit application");
       }
 
-      const paymentDescription = "EarlyCEO Bootcamp — Founding Cohort Special";
-
-      await startRazorpayPayment({
-        amount: leadData.amount,
-        leadId: leadData.leadId,
-        tier: leadData.tier,
-        form,
-        description: paymentDescription,
-        onSuccess: () => {
-          setSubmitted(true);
-        },
-        onDismiss: () => {
-          setError(
-            "Payment was not completed. Your details are saved — our team will reach out to you shortly."
-          );
-          setSubmitting(false);
-        },
-        onFailed: (message) => {
-          setError(message);
-          setSubmitting(false);
-        },
-      });
+      setRegistrationNumber(data.registrationNumber);
+      setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
       setSubmitting(false);
     }
   };
@@ -138,32 +122,39 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
             {submitted ? (
               <div className="px-8 py-16 text-center sm:px-12">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Payment Successful
+                  Application Received
                 </p>
                 <h2 className="mt-4 text-2xl font-bold uppercase tracking-tight sm:text-3xl">
                   Thank You
                 </h2>
                 <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                  Your seat is confirmed. Join the {COHORT.name} community to get
-                  updates, resources, and connect with fellow founders.
+                  We review every application carefully. Only dedicated candidates
+                  who align with our cohort vision will be selected.
                 </p>
 
                 <div className="mx-auto mt-8 max-w-sm rounded-xl border border-border px-5 py-6">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Community
+                    Your Registration Number
+                  </p>
+                  <p className="mt-3 font-mono text-lg font-bold tracking-wider">
+                    {registrationNumber}
                   </p>
                   <p className="mt-3 text-sm text-muted-foreground">
-                    Join our WhatsApp group for {COHORT.name}
+                    Save this number. If selected, we will share a private link to
+                    complete your enrollment for {COHORT.name}.
                   </p>
-                  <a
-                    href={COHORT.whatsappCommunityUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-8 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                  >
-                    Join Group Now
-                  </a>
-                  <p className="mt-3 text-xs text-muted-foreground">Join us now</p>
+                </div>
+
+                <div className="mx-auto mt-6 max-w-sm rounded-lg bg-muted/40 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
+                  <p>
+                    We have sent your registration details to{" "}
+                    <span className="font-medium text-foreground">{form.email}</span>.
+                  </p>
+                  <p className="mt-2">
+                    Please wait while we review your application. If you do not
+                    receive our email within a few minutes, check your spam or
+                    promotions folder.
+                  </p>
                 </div>
 
                 <button
@@ -177,32 +168,19 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
             ) : (
               <form onSubmit={handleSubmit} className="px-6 py-8 sm:px-8 sm:py-10">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Join Bootcamp
+                  Apply for {COHORT.name}
                 </p>
                 <h2 className="mt-2 text-2xl font-bold uppercase tracking-tight">
                   Application Form
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Fill in your details. Payment is required to confirm your seat.
+                  We are selective. Tell us who you are and why you belong in this
+                  cohort. Not every application is accepted.
                 </p>
 
-                <div className="mt-4 rounded-lg border border-border px-4 py-3 text-sm">
-                  <p>
-                    <span className="font-semibold text-foreground">
-                      {COHORT.offerLabel}: ₹{PRICING.price.toLocaleString("en-IN")}
-                    </span>
-                    <br />
-                    <span className="text-muted-foreground">
-                      Available only for {COHORT.name}. Only {PRICING.seatLimit} founders
-                      will be accepted into {COHORT.name}.
-                    </span>
-                  </p>
-                  <p className="mt-3 text-muted-foreground">
-                    {COHORT.valueProps.perSession}
-                  </p>
-                  <p className="mt-1 text-muted-foreground">
-                    {COHORT.valueProps.guestLecture}
-                  </p>
+                <div className="mt-4 rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
+                  Only {COHORT.name} · Up to 100 founders accepted · Applications
+                  reviewed by our team
                 </div>
 
                 <div className="mt-8 space-y-5">
@@ -322,7 +300,50 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                       value={form.whyBootcamp}
                       onChange={(e) => update("whyBootcamp", e.target.value)}
                       className={inputClass}
-                      placeholder="Tell us what brought you here and what you hope to gain"
+                      placeholder="What brought you here and what do you want to build?"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Why should we select you over other applicants? *
+                    </label>
+                    <textarea
+                      required
+                      rows={3}
+                      value={form.whySelectYou}
+                      onChange={(e) => update("whySelectYou", e.target.value)}
+                      className={inputClass}
+                      placeholder="What makes you stand out as a dedicated founder?"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      What commitment can you make to this 9-day bootcamp? *
+                    </label>
+                    <textarea
+                      required
+                      rows={3}
+                      value={form.commitmentLevel}
+                      onChange={(e) => update("commitmentLevel", e.target.value)}
+                      className={inputClass}
+                      placeholder="Time, effort, attendance, and what you are willing to sacrifice"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      If you became CEO for a Day tomorrow, what is the first
+                      decision you would make and why? *
+                    </label>
+                    <textarea
+                      required
+                      rows={3}
+                      value={form.ceoDayApproach}
+                      onChange={(e) => update("ceoDayApproach", e.target.value)}
+                      className={inputClass}
+                      placeholder="Think like a founder — strategy, people, product, or operations"
                     />
                   </div>
 
@@ -367,6 +388,19 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                     </motion.div>
                   )}
 
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      How much are you willing to pay for this bootcamp? *
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      value={form.willingToPay}
+                      onChange={(e) => update("willingToPay", e.target.value)}
+                      className={inputClass}
+                      placeholder="Your honest answer — amount or range"
+                    />
+                  </div>
                 </div>
 
                 {error && (
@@ -378,9 +412,7 @@ export function JoinBootcampModal({ open, onClose }: JoinBootcampModalProps) {
                   disabled={submitting}
                   className="mt-8 w-full rounded-full bg-foreground py-3.5 text-sm font-semibold uppercase tracking-wider text-background transition-opacity hover:opacity-80 disabled:opacity-50"
                 >
-                  {submitting
-                    ? "Processing..."
-                    : `Submit & Pay ₹${currentPrice.toLocaleString("en-IN")}`}
+                  {submitting ? "Submitting..." : "Submit Application"}
                 </button>
               </form>
             )}

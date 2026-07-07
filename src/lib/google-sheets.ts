@@ -11,6 +11,10 @@ export interface LeadFormData {
   whyBootcamp: string;
   hasIdea: string;
   ideaDetails: string;
+  willingToPay: string;
+  whySelectYou: string;
+  commitmentLevel: string;
+  ceoDayApproach: string;
 }
 
 export interface CohortStatus {
@@ -21,11 +25,12 @@ export interface CohortStatus {
   price: number;
 }
 
-export interface LeadSubmissionResult extends CohortStatus {
-  success: boolean;
-  leadId: string;
-  tier: "founding_cohort";
-  amount: number;
+export interface LeadLookupResult {
+  found: boolean;
+  leadId?: string;
+  fullName?: string;
+  paymentStatus?: string;
+  alreadyPaid?: boolean;
 }
 
 const SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL;
@@ -51,7 +56,10 @@ async function callScript<T>(payload: Record<string, unknown>): Promise<T> {
       throw new Error(data.error ?? "Google Sheets request failed");
     }
     return data;
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message !== "Invalid response from Google Sheets") {
+      throw error;
+    }
     if (text.includes("Access denied") || text.includes("You need access")) {
       throw new Error(
         "Google Script access denied. Redeploy with Who has access: Anyone"
@@ -99,10 +107,11 @@ export async function getCohortStatus(): Promise<CohortStatus> {
 export async function appendLead(
   form: LeadFormData,
   meta: {
-    tier: string;
+    cohort: string;
     amount: number;
     leadId: string;
-    paymentStatus: "paid" | "cancelled" | "failed" | "pending";
+    paymentStatus: "paid" | "cancelled" | "failed" | "pending" | "applied";
+    reviewStatus?: "pending" | "selected" | "rejected";
     paymentId?: string;
     orderId?: string;
   }
@@ -110,13 +119,25 @@ export async function appendLead(
   return callScript<{ success: boolean }>({
     action: "append",
     leadId: meta.leadId,
-    tier: meta.tier,
+    cohort: meta.cohort,
     amount: meta.amount,
     paymentStatus: meta.paymentStatus,
+    reviewStatus: meta.reviewStatus ?? "pending",
     paymentId: meta.paymentId ?? "",
     orderId: meta.orderId ?? "",
     submittedAt: new Date().toISOString(),
     ...form,
+  });
+}
+
+export async function findLeadByRegistration(
+  registrationNumber: string,
+  fullName: string
+): Promise<LeadLookupResult> {
+  return callScript<LeadLookupResult>({
+    action: "findLead",
+    registrationNumber,
+    fullName,
   });
 }
 
@@ -125,7 +146,7 @@ export async function updateLeadPayment(
   payment: {
     paymentId?: string;
     orderId?: string;
-    status: "paid" | "cancelled" | "failed" | "pending";
+    status: "paid" | "cancelled" | "failed" | "pending" | "applied";
   }
 ): Promise<{ success: boolean }> {
   return callScript<{ success: boolean }>({

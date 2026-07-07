@@ -93,15 +93,10 @@ export function Hero() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-hero-fg/40">
                   {COHORT.offerLabel}
                 </p>
-                <div className="mt-1 flex items-baseline justify-center gap-2">
-                  <span className="text-2xl font-bold text-hero-fg">
-                    ₹{PRICING.price.toLocaleString("en-IN")}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-hero-fg/40">
-                  Available only for {COHORT.name}
+                <p className="mt-2 text-xs leading-relaxed text-hero-fg/45">
+                  {COHORT.valueProps.selective}
                 </p>
-                <p className="mt-1 text-xs text-hero-fg/40">
+                <p className="mt-2 text-xs text-hero-fg/40">
                   Only {PRICING.seatLimit} founders will be accepted into {COHORT.name}
                 </p>
               </div>

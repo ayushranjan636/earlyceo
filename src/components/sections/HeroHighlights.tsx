@@ -14,9 +14,6 @@ export function HeroHighlights() {
           className="mx-auto max-w-2xl text-center"
         >
           <p className="text-sm font-medium text-foreground">
-            {COHORT.valueProps.perSession}
-          </p>
-          <p className="mt-2 text-sm font-medium text-foreground">
             {COHORT.valueProps.guestLecture}
           </p>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">

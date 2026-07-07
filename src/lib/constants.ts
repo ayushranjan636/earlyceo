@@ -16,7 +16,7 @@ export const PRICING = {
 
 export const COHORT = {
   name: "Cohort 01",
-  offerLabel: "Founding Cohort Special",
+  offerLabel: "Selective Founding Cohort",
   registrationCloseDate: "2026-07-19T23:59:59+05:30", // 19 Jul 2026, 11:59:59 PM IST
   startDate: "2026-07-20",
   startLabel: "20 July 2026",
@@ -24,8 +24,9 @@ export const COHORT = {
   whatsappCommunityUrl:
     "https://chat.whatsapp.com/F3LFxVY7PKUKr1JkaEV5l9?mode=gi_t",
   valueProps: {
-    perSession: "Less than ₹100 per session",
     guestLecture: "A free guest session with a big startup face",
+    selective:
+      "We accept dedicated founders only — not everyone who applies gets in.",
   },
 };
 
@@ -187,8 +188,8 @@ export const FAQS = [
     a: "All 9 days feature live interactive sessions with industry experts. You also get lifetime access to recordings for revision.",
   },
   {
-    q: "What is the Founding Cohort Special?",
-    a: "Cohort 01 is available at ₹999 for the full 9-day bootcamp — live sessions, community access, and all program materials. Only 100 founders will be accepted.",
+    q: "How selective is Cohort 01?",
+    a: "Very. We review every application and only accept founders who show real commitment, clarity, and dedication. Not everyone who applies will be selected.",
   },
   {
     q: "Is there a certificate?",
@@ -196,7 +197,7 @@ export const FAQS = [
   },
   {
     q: "How do I register?",
-    a: "Click 'Join Bootcamp' to apply and pay ₹999. Cohort 01 accepts up to 100 founders.",
+    a: "Click Apply Now and submit the application form. If selected, you will receive a registration number and a private link to complete enrollment.",
   },
 ];
 

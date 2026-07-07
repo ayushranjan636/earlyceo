@@ -200,3 +200,101 @@ export async function startRazorpayPayment({
 
   rzp.open();
 }
+
+interface RegistrationPaymentParams {
+  registrationNumber: string;
+  fullName: string;
+  leadId: string;
+  amount: number;
+  onSuccess: () => void;
+  onDismiss?: () => void;
+  onFailed?: (message: string) => void;
+}
+
+export async function startRegistrationPayment({
+  registrationNumber,
+  fullName,
+  leadId,
+  amount,
+  onSuccess,
+  onDismiss,
+  onFailed,
+}: RegistrationPaymentParams) {
+  const keyRes = await fetch("/api/razorpay/key");
+  const keyData = await keyRes.json();
+  const key = keyData.keyId as string;
+
+  if (!key) {
+    throw new Error("Payment is not configured yet");
+  }
+
+  const orderRes = await fetch("/api/razorpay/order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      amount,
+      leadId,
+      name: fullName,
+    }),
+  });
+
+  if (!orderRes.ok) {
+    const err = await orderRes.json().catch(() => ({}));
+    throw new Error(
+      (err as { error?: string }).error ?? "Could not create payment order"
+    );
+  }
+
+  const order = await orderRes.json();
+  const orderId = order.order_id ?? order.orderId;
+  const loaded = await loadRazorpayScript();
+
+  if (!loaded) {
+    throw new Error("Could not load payment gateway");
+  }
+
+  const rzp = new window.Razorpay({
+    key,
+    amount: order.amount,
+    currency: order.currency,
+    name: "EarlyCEO",
+    description: `Cohort 01 enrollment — ${registrationNumber}`,
+    order_id: orderId,
+    prefill: { name: fullName },
+    theme: { color: "#000000" },
+    handler: async (response) => {
+      try {
+        const verifyRes = await fetch("/api/payment/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...response,
+            leadId,
+          }),
+        });
+
+        if (!verifyRes.ok) {
+          const err = await verifyRes.json().catch(() => ({}));
+          throw new Error(
+            (err as { error?: string }).error ?? "Payment verification failed"
+          );
+        }
+
+        onSuccess();
+      } catch (error) {
+        onFailed?.(
+          error instanceof Error ? error.message : "Payment verification failed"
+        );
+      }
+    },
+    modal: {
+      ondismiss: () => onDismiss?.(),
+    },
+  });
+
+  rzp.on("payment.failed", (response) => {
+    onFailed?.(response.error.description ?? "Payment failed. Please try again.");
+  });
+
+  rzp.open();
+}
