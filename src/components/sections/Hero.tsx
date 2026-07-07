@@ -111,16 +111,16 @@ export function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1 }}
-              className="flex w-full max-w-xs flex-col items-center gap-4 text-center lg:items-end lg:text-right"
+              className="flex w-full max-w-xs flex-col items-center"
             >
-              <div className="w-full rounded-xl border border-hero-fg/10 px-4 py-4 sm:px-5">
+              <div className="w-full rounded-xl border border-hero-fg/10 px-4 py-4 text-center sm:px-5">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-hero-fg/50">
                   1st Cohort starts {COHORT.startLabel}
                 </p>
                 <p className="mt-1 text-xs text-hero-fg/40">
                   Registration closes {COHORT.registrationCloseLabel}
                 </p>
-                <div className="mt-4 flex justify-center lg:justify-end">
+                <div className="mt-4 flex justify-center">
                   <Countdown
                     variant="hero"
                     label="Registration closes in"

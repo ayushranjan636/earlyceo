@@ -36,25 +36,25 @@ export function Countdown({
   const isHero = variant === "hero";
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex w-full flex-col items-center gap-2 text-center">
       {label && (
         <p
           className={
             isHero
-              ? "text-[10px] font-semibold uppercase tracking-[0.15em] text-hero-fg/40"
-              : "text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground"
+              ? "w-full text-[10px] font-semibold uppercase tracking-[0.15em] text-hero-fg/40"
+              : "w-full text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground"
           }
         >
           {label}
         </p>
       )}
-      <div className="flex justify-center gap-2 sm:gap-3">
+      <div className="inline-flex justify-center gap-2 sm:gap-3">
         {units.map((unit) => (
           <div
             key={unit.label}
             className={
               isHero
-                ? "flex min-w-[40px] flex-col items-center sm:min-w-[44px]"
+                ? "flex w-10 flex-col items-center sm:w-11"
                 : "flex min-w-[44px] flex-col items-center rounded-lg border border-border px-2.5 py-1.5"
             }
           >
